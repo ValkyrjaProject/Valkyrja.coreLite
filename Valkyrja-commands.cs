@@ -187,10 +187,10 @@ namespace Valkyrja.coreLite
 					                 $"```md\n" +
 					                 $"[ Memory usage ][ {memoryPercentage:#00.00} % ({memoryPercentage / 100 * 128:000.00}/128 GB) ]\n" +
 					                 $"[     CPU Load ][ {double.Parse(cpuLoad):#00.00} % ({temp[1]})       ]\n" +
-					                 $"[     Shard ID ][ {this.CurrentShardId:00}                      ]\n";
+					                 $"[     Shard ID ][ {this.CurrentShardId:00}                      ]\n```";
 				}
 
-				message += $"```\n<:ValkThink:535541641507897354> `{time.TotalMilliseconds:#00}`ms <:ValkyrjaNomBlob:509485197763543050>";
+				message += $"\n<:ValkThink:535541641507897354> `{time.TotalMilliseconds:#00}`ms <:ValkyrjaNomBlob:509485197763543050>";
 				await e.SendReplySafe(message);
 			};
 			this.Commands.Add(newCommand.Id.ToLower(), newCommand);

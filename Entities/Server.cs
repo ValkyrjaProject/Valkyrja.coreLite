@@ -64,9 +64,9 @@ namespace Valkyrja.entities
 
 			//this.CustomCommands = dbContext.CustomCommands.AsQueryable().Where(c => c.ServerId == this.Id).ToDictionary(c => c.CommandId.ToLower());
 			//this.CustomAliases = dbContext.CustomAliases.AsQueryable().Where(c => c.ServerId == this.Id).ToDictionary(c => c.Alias.ToLower());
-			IEnumerable<RoleConfig> roles = client.Config.AdminRoleIds?.Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Admin});
-			roles = roles?.Concat(client.Config.ModeratorRoleIds?.Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Moderator}) ?? new List<RoleConfig>());
-			roles = roles?.Concat(client.Config.SubModeratorRoleIds?.Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.SubModerator}) ?? new List<RoleConfig>());
+			IEnumerable<RoleConfig> roles = client.Config.AdminRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Admin});
+			roles = roles?.Concat(client.Config.ModeratorRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Moderator}) ?? new List<RoleConfig>());
+			roles = roles?.Concat(client.Config.SubModeratorRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.SubModerator}) ?? new List<RoleConfig>());
 			this.Roles = roles?.ToDictionary(r => r.RoleId);
 
 			return Task.CompletedTask;
@@ -80,7 +80,7 @@ namespace Valkyrja.entities
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public CommandOptions GetCommandOptions(string commandString)
 		{
-			return null;
+			return new CommandOptions();
 			/*string lowerCommandString = commandString.ToLower();
 			if( this.CustomAliases.ContainsKey(lowerCommandString) )
 				commandString = this.CustomAliases[lowerCommandString].CommandId;
@@ -97,7 +97,7 @@ namespace Valkyrja.entities
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public List<CommandChannelOptions> GetCommandChannelOptions(string commandString)
 		{
-			return null;
+			return new List<CommandChannelOptions>();
 			/*CommandChannelOptions tmp;
 			if( this.CachedCommandChannelOptions != null &&
 			   (tmp = this.CachedCommandChannelOptions.FirstOrDefault()) != null && tmp.CommandId == commandString )
