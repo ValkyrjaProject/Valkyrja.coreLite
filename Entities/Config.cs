@@ -24,6 +24,7 @@ namespace Valkyrja.entities
 		public bool ExecuteOnEdit = true;
 		public bool IgnoreBots = true;
 		public bool IgnoreEveryone = true;
+		public bool HelpPrintsEverything = true;
 		public guid OwnerUserId = 0;
 		public guid NotificationChannelId = 0;
 		public guid[] AdminRoleIds = {0};

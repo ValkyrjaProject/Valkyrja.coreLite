@@ -226,7 +226,9 @@ namespace Valkyrja.coreLite
 			newCommand.ManPage = new ManPage("[search expression]", "[search expression] - Optional argument to search for specific commands.");
 			newCommand.RequiredPermissions = PermissionType.Everyone;
 			newCommand.OnExecute += async e => {
-				StringBuilder response = new StringBuilder($"`{this.Config.CommandPrefix}help` is merely a search. Use `{this.Config.CommandPrefix}man` for detailed manual page.");
+				await e.SendReplySafe($"`{this.Config.CommandPrefix}help` is merely a search. Use `{this.Config.CommandPrefix}man` for detailed manual page.");
+
+				StringBuilder response = new StringBuilder();
 				StringBuilder commandStrings = new StringBuilder();
 
 				bool isSpecific = !string.IsNullOrWhiteSpace(e.TrimmedMessage);
@@ -242,7 +244,10 @@ namespace Valkyrja.coreLite
 					{
 						try
 						{
-							await e.Message.Author.SendMessageAsync(pm);
+							if( this.Config.HelpPrintsEverything )
+								await e.SendReplySafe(pm);
+							else
+								await e.Message.Author.SendMessageAsync(pm);
 						}
 						catch( Exception )
 						{
@@ -288,8 +293,6 @@ namespace Valkyrja.coreLite
 
 					await Append(newString);
 					await AddCustomAlias(cmd.Id);
-					if( cmd.ManPage != null )
-						newString += $"\n **-** Use `{prefix}man {cmd.Id}` to display full manual page.";
 				}
 
 				async Task  AddCustomCommand(CustomCommand cmd)
@@ -370,6 +373,15 @@ namespace Valkyrja.coreLite
 
 						response.Append(commandStrings.ToString());
 					}
+				}
+				else if( this.Config.HelpPrintsEverything )
+				{
+					foreach( Command cmd in e.Server.Commands.Values.Where(cmd => !cmd.IsAlias) )
+					{
+						await AddCommand(cmd);
+					}
+
+					response.Append(commandStrings.ToString());
 				}
 				else if( e.Server.CustomCommands.Any() ) //Not specific - PM CustomCommands.
 				{
