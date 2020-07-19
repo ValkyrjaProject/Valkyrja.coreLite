@@ -14,22 +14,22 @@ using guid = System.UInt64;
 
 namespace Valkyrja.coreLite
 {
-	public partial class ValkyrjaClient<T>: IValkyrjaClient, IDisposable where T: Config, new()
+	public partial class ValkyrjaClient<T>: IValkyrjaClient, IDisposable where T: BaseConfig, new()
 	{
 		private readonly Regex RegexMentionHelp = new Regex(".*(help|commands).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly Regex RegexPrefixHelp = new Regex(".*(command character|prefix).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private async Task HandleMentionResponse(Server server, SocketTextChannel channel, SocketMessage message)
 		{
-			if( this.Config.Debug )
+			if( this.CoreConfig.Debug )
 				Console.WriteLine("ValkyrjaClient: MentionReceived");
 
 			string responseString = "";
 
 			if( this.RegexMentionHelp.Match(message.Content).Success )
-				responseString = $"Use `{this.Config.CommandPrefix}help` command to search for things, or the manual pages (`{this.Config.CommandPrefix}man`) for specific and detailed information about a command";
+				responseString = $"Use `{this.CoreConfig.CommandPrefix}help` command to search for things, or the manual pages (`{this.CoreConfig.CommandPrefix}man`) for specific and detailed information about a command";
 			else if( this.RegexPrefixHelp.Match(message.Content).Success )
-				responseString = string.IsNullOrEmpty(this.Config.CommandPrefix) ? "Command prefix is empty. Someone forgot to set it up?" : $"Try this: `{this.Config.CommandPrefix}`";
+				responseString = string.IsNullOrEmpty(this.CoreConfig.CommandPrefix) ? "Command prefix is empty. Someone forgot to set it up?" : $"Try this: `{this.CoreConfig.CommandPrefix}`";
 			else
 				responseString = "<:ValkyrjaNomPing:509482352028942358>";
 
@@ -176,7 +176,7 @@ namespace Valkyrja.coreLite
 			newCommand.OnExecute += async e => {
 				TimeSpan time = DateTime.UtcNow - Utils.GetTimeFromId(e.Message.Id);
 				string message = "";
-				if( this.Config.IsValkyrjaHosted )
+				if( this.CoreConfig.IsValkyrjaHosted )
 				{
 					string cpuLoad = Bash.Run("grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'");
 					string memoryUsed = Bash.Run("free | grep Mem | awk '{print $3/$2 * 100.0}'");
@@ -226,13 +226,13 @@ namespace Valkyrja.coreLite
 			newCommand.ManPage = new ManPage("[search expression]", "[search expression] - Optional argument to search for specific commands.");
 			newCommand.RequiredPermissions = PermissionType.Everyone;
 			newCommand.OnExecute += async e => {
-				await e.SendReplySafe($"`{this.Config.CommandPrefix}help` is merely a search. Use `{this.Config.CommandPrefix}man` for detailed manual page.");
+				await e.SendReplySafe($"`{this.CoreConfig.CommandPrefix}help` is merely a search. Use `{this.CoreConfig.CommandPrefix}man` for detailed manual page.");
 
 				StringBuilder response = new StringBuilder();
 				StringBuilder commandStrings = new StringBuilder();
 
 				bool isSpecific = !string.IsNullOrWhiteSpace(e.TrimmedMessage);
-				string prefix = this.Config.CommandPrefix;
+				string prefix = this.CoreConfig.CommandPrefix;
 				List<string> includedCommandIds = new List<string>();
 				int count = 0;
 				bool cantPm = false;
@@ -240,11 +240,11 @@ namespace Valkyrja.coreLite
 				async Task Append(string newString)
 				{
 					string pm = commandStrings.ToString();
-					if( !isSpecific && pm.Length + newString.Length >= Config.MessageCharacterLimit )
+					if( !isSpecific && pm.Length + newString.Length >= BaseConfig.MessageCharacterLimit )
 					{
 						try
 						{
-							if( this.Config.HelpPrintsEverything )
+							if( this.CoreConfig.HelpPrintsEverything )
 								await e.SendReplySafe(pm);
 							else
 								await e.Message.Author.SendMessageAsync(pm);
@@ -374,7 +374,7 @@ namespace Valkyrja.coreLite
 						response.Append(commandStrings.ToString());
 					}
 				}
-				else if( this.Config.HelpPrintsEverything )
+				else if( this.CoreConfig.HelpPrintsEverything )
 				{
 					foreach( Command cmd in e.Server.Commands.Values.Where(cmd => !cmd.IsAlias) )
 					{

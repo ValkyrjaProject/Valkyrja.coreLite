@@ -13,9 +13,10 @@ using guid = System.UInt64;
 
 namespace Valkyrja.coreLite
 {
-	public partial class ValkyrjaClient<T>: IValkyrjaClient, IDisposable where T: Config, new()
+	public partial class ValkyrjaClient<T>: IValkyrjaClient, IDisposable where T: BaseConfig, new()
 	{
-		public Config Config{ get; set; }
+		public BaseConfig CoreConfig{ get; set; }
+		public T Config{ get; set; }
 		public Monitoring Monitoring{ get; set; }
 		public DiscordSocketClient DiscordClient;
 		public Events Events;
@@ -61,14 +62,14 @@ namespace Valkyrja.coreLite
 			this.TimeStarted = DateTime.UtcNow;
 
 			Console.WriteLine("ValkyrjaClient: Loading configuration...");
-			this.Config = Config.Load<T>(configPath);
-			if( string.IsNullOrEmpty(this.Config.DiscordToken) )
+			this.CoreConfig = this.Config = Valkyrja.entities.BaseConfig.Load<T>(configPath);
+			if( string.IsNullOrEmpty(this.CoreConfig.DiscordToken) )
 			{
 				Console.WriteLine("ValkyrjaClient: Discord token is empty. Exiting.");
 				Environment.Exit(0);
 			}
 
-			this.Monitoring = Monitoring.Create(this.Config, shardIdOverride);
+			this.Monitoring = Monitoring.Create(this.CoreConfig, shardIdOverride);
 			if( shardIdOverride >= 0 )
 				this.CurrentShardId = shardIdOverride;
 		}
@@ -87,19 +88,19 @@ namespace Valkyrja.coreLite
 
 			DiscordSocketConfig config = new DiscordSocketConfig{
 				ShardId = this.CurrentShardId,
-				TotalShards = this.Config.TotalShards,
-				LogLevel = this.Config.Debug ? LogSeverity.Debug : LogSeverity.Warning,
+				TotalShards = this.CoreConfig.TotalShards,
+				LogLevel = this.CoreConfig.Debug ? LogSeverity.Debug : LogSeverity.Warning,
 				DefaultRetryMode = RetryMode.Retry502 & RetryMode.RetryRatelimit & RetryMode.RetryTimeouts,
-				AlwaysDownloadUsers = this.Config.DownloadUsers,
+				AlwaysDownloadUsers = this.CoreConfig.DownloadUsers,
 				LargeThreshold = 100,
 				HandlerTimeout = null,
-				MessageCacheSize = this.Config.MessageCacheSize,
+				MessageCacheSize = this.CoreConfig.MessageCacheSize,
 				ConnectionTimeout = 300000
 			};
 
 			this.DiscordClient = new DiscordSocketClient(config);
 
-			if( this.Config.Debug )
+			if( this.CoreConfig.Debug )
 			{
 				this.DiscordClient.Log += message => {
 					Console.WriteLine($"[${message.Severity}] ${message.Message}\n  Source: ${message.Source}");
@@ -114,7 +115,7 @@ namespace Valkyrja.coreLite
 			this.Events = new Events(this.DiscordClient, this);
 			this.Events.MessageReceived += OnMessageReceived;
 			this.Events.MessageUpdated += OnMessageUpdated;
-			this.Events.Connected += async () => await this.DiscordClient.SetGameAsync(this.Config.GameStatus);
+			this.Events.Connected += async () => await this.DiscordClient.SetGameAsync(this.CoreConfig.GameStatus);
 			this.Events.Initialize += InitCommands;
 			this.Events.Initialize += InitModules;
 			this.Events.GuildAvailable += OnGuildAvailable;
@@ -122,7 +123,7 @@ namespace Valkyrja.coreLite
 			this.Events.LeftGuild += OnGuildLeft;
 			this.Events.GuildUpdated += OnGuildUpdated;
 
-			await this.DiscordClient.LoginAsync(TokenType.Bot, this.Config.DiscordToken);
+			await this.DiscordClient.LoginAsync(TokenType.Bot, this.CoreConfig.DiscordToken);
 			await this.DiscordClient.StartAsync();
 		}
 
@@ -150,7 +151,7 @@ namespace Valkyrja.coreLite
 
 		private Task OnReady()
 		{
-			if( this.Config.Debug )
+			if( this.CoreConfig.Debug )
 				Console.WriteLine("ValkyrjaClient: Ready.");
 
 			if( this.MainUpdateTask == null )
@@ -199,7 +200,7 @@ namespace Valkyrja.coreLite
 
 			try
 			{
-				if( this.Config.Debug )
+				if( this.CoreConfig.Debug )
 					Console.WriteLine("ValkyrjaClient: MessageReceived on thread " + Thread.CurrentThread.ManagedThreadId);
 
 				if( !(message.Channel is SocketTextChannel channel) )
@@ -211,13 +212,13 @@ namespace Valkyrja.coreLite
 				Server server;
 				if( !this.Servers.ContainsKey(channel.Guild.Id) || (server = this.Servers[channel.Guild.Id]) == null )
 					return;
-				if( this.Config.IgnoreBots && message.Author.IsBot || this.Config.IgnoreEveryone && this.RegexEveryone.IsMatch(message.Content) )
+				if( this.CoreConfig.IgnoreBots && message.Author.IsBot || this.CoreConfig.IgnoreEveryone && this.RegexEveryone.IsMatch(message.Content) )
 					return;
 
 				bool commandExecuted = false;
 				string prefix;
 				if( message.Author.Id != this.DiscordClient.CurrentUser.Id &&
-				    !string.IsNullOrWhiteSpace(this.Config.CommandPrefix) && message.Content.StartsWith(prefix = this.Config.CommandPrefix) )
+				    !string.IsNullOrWhiteSpace(this.CoreConfig.CommandPrefix) && message.Content.StartsWith(prefix = this.CoreConfig.CommandPrefix) )
 					commandExecuted = await HandleCommand(server, channel, message, prefix);
 
 				if( !commandExecuted && message.MentionedUsers.Any(u => u.Id == this.DiscordClient.CurrentUser.Id) )
@@ -237,17 +238,17 @@ namespace Valkyrja.coreLite
 			try
 			{
 				Server server;
-				if( !(iChannel is SocketTextChannel channel) || updatedMessage?.Author == null || !this.Servers.ContainsKey(channel.Guild.Id) || (server = this.Servers[channel.Guild.Id]) == null || this.Config == null )
+				if( !(iChannel is SocketTextChannel channel) || updatedMessage?.Author == null || !this.Servers.ContainsKey(channel.Guild.Id) || (server = this.Servers[channel.Guild.Id]) == null || this.CoreConfig == null )
 					return;
-				if( this.Config.IgnoreBots && updatedMessage.Author.IsBot || this.Config.IgnoreEveryone && this.RegexEveryone.IsMatch(updatedMessage.Content) )
+				if( this.CoreConfig.IgnoreBots && updatedMessage.Author.IsBot || this.CoreConfig.IgnoreEveryone && this.RegexEveryone.IsMatch(updatedMessage.Content) )
 					return;
 
 				bool commandExecuted = false;
-				if( this.Config.ExecuteOnEdit )
+				if( this.CoreConfig.ExecuteOnEdit )
 				{
 					string prefix;
 					if( updatedMessage.Author.Id != this.DiscordClient.CurrentUser.Id &&
-					    !string.IsNullOrWhiteSpace(this.Config.CommandPrefix) && updatedMessage.Content.StartsWith(prefix = this.Config.CommandPrefix) )
+					    !string.IsNullOrWhiteSpace(this.CoreConfig.CommandPrefix) && updatedMessage.Content.StartsWith(prefix = this.CoreConfig.CommandPrefix) )
 						commandExecuted = await HandleCommand(server, channel, updatedMessage, prefix);
 				}
 			}
@@ -260,19 +261,19 @@ namespace Valkyrja.coreLite
 //Update
 		private async Task MainUpdate()
 		{
-			if( this.Config.Debug )
+			if( this.CoreConfig.Debug )
 				Console.WriteLine("ValkyrjaClient: MainUpdate started.");
 
 			while( !this.MainUpdateCancel.IsCancellationRequested )
 			{
-				if( this.Config.Debug )
+				if( this.CoreConfig.Debug )
 					Console.WriteLine("ValkyrjaClient: MainUpdate loop triggered at: " + Utils.GetTimestamp(DateTime.UtcNow));
 
 				DateTime frameTime = DateTime.UtcNow;
 
 				if( !this.IsInitialized )
 				{
-					if( this.Config.Debug )
+					if( this.CoreConfig.Debug )
 						Console.WriteLine("ValkyrjaClient: Initialized.");
 					try
 					{
@@ -287,7 +288,7 @@ namespace Valkyrja.coreLite
 
 				if( this.DiscordClient.ConnectionState != ConnectionState.Connected ||
 				    this.DiscordClient.LoginState != LoginState.LoggedIn ||
-				    DateTime.Now - this.TimeConnected < TimeSpan.FromSeconds(this.Config.InitialUpdateDelay) )
+				    DateTime.Now - this.TimeConnected < TimeSpan.FromSeconds(this.CoreConfig.InitialUpdateDelay) )
 				{
 					await Task.Delay(10000);
 					continue;
@@ -310,7 +311,7 @@ namespace Valkyrja.coreLite
 
 				try
 				{
-					if( this.Config.Debug )
+					if( this.CoreConfig.Debug )
 						Console.WriteLine("ValkyrjaClient: Update loop triggered at: " + Utils.GetTimestamp(DateTime.UtcNow));
 
 					this.Monitoring?.Uptime.Set((DateTime.UtcNow - this.TimeStarted).TotalSeconds);
@@ -322,15 +323,15 @@ namespace Valkyrja.coreLite
 				}
 
 				TimeSpan deltaTime = DateTime.UtcNow - frameTime;
-				if( this.Config.Debug )
+				if( this.CoreConfig.Debug )
 					Console.WriteLine($"ValkyrjaClient: MainUpdate loop took: {deltaTime.TotalMilliseconds} ms");
-				await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(this.Config.TotalShards * 1000, (TimeSpan.FromSeconds(1f / this.Config.TargetFps) - deltaTime).TotalMilliseconds)));
+				await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(this.CoreConfig.TotalShards * 1000, (TimeSpan.FromSeconds(1f / this.CoreConfig.TargetFps) - deltaTime).TotalMilliseconds)));
 			}
 		}
 
 		private async Task Update()
 		{
-			if( this.Config.Debug )
+			if( this.CoreConfig.Debug )
 				Console.WriteLine("ValkyrjaClient: UpdateModules loop triggered at: " + Utils.GetTimestamp(DateTime.UtcNow));
 			await UpdateModules();
 		}
@@ -371,7 +372,7 @@ namespace Valkyrja.coreLite
 			IEnumerable<IModule> modules = this.Modules.Where(m => m.DoUpdate);
 			foreach( IModule module in modules )
 			{
-				if( this.Config.Debug )
+				if( this.CoreConfig.Debug )
 					Console.WriteLine($"ValkyrjaClient: ModuleUpdate.{module.ToString()} triggered at: " + Utils.GetTimestamp(DateTime.UtcNow));
 
 				DateTime frameTime = DateTime.UtcNow;
@@ -389,7 +390,7 @@ namespace Valkyrja.coreLite
 					await LogException(exception, "--ModuleUpdate." + module.ToString());
 				}
 
-				if( this.Config.Debug )
+				if( this.CoreConfig.Debug )
 					Console.WriteLine($"ValkyrjaClient: ModuleUpdate.{module.ToString()} took: {(DateTime.UtcNow - frameTime).TotalMilliseconds} ms");
 			}
 		}
@@ -425,7 +426,7 @@ namespace Valkyrja.coreLite
 			GetCommandAndParams(message.Content.Substring(prefix.Length), out string commandString, out string trimmedMessage, out string[] parameters);
 			string originalCommandString = commandString;
 
-			if( this.Config.Debug )
+			if( this.CoreConfig.Debug )
 				Console.WriteLine($"Command: {commandString} | {trimmedMessage}");
 
 			commandString = commandString.ToLower();
@@ -504,7 +505,7 @@ namespace Valkyrja.coreLite
 				}
 			}
 
-			if( this.Config.IgnoreEveryone )
+			if( this.CoreConfig.IgnoreEveryone )
 				msg = msg.Replace("@everyone", "@-everyone").Replace("@here", "@-here");
 
 			Match match = this.RegexCustomCommandPmAll.Match(msg);

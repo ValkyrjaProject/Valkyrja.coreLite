@@ -11,7 +11,7 @@ namespace Valkyrja.entities
 	public interface IValkyrjaClient
 	{
 		bool IsConnected{ get; set; }
-		Config Config{ get; set; }
+		BaseConfig CoreConfig{ get; set; }
 		Monitoring Monitoring{ get; set; }
 		List<Operation> CurrentOperations{ get; set; }
 		Object OperationsLock{ get; set; }

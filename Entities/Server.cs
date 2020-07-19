@@ -49,7 +49,7 @@ namespace Valkyrja.entities
 			this.Guild = guild;
 		}
 
-		public Task ReloadConfig<T>(ValkyrjaClient<T> client, Dictionary<string, Command> allCommands) where T: Config, new()
+		public Task ReloadConfig<T>(ValkyrjaClient<T> client, Dictionary<string, Command> allCommands) where T: BaseConfig, new()
 		{
 			this.Client = client;
 
@@ -64,15 +64,15 @@ namespace Valkyrja.entities
 
 			//this.CustomCommands = dbContext.CustomCommands.AsQueryable().Where(c => c.ServerId == this.Id).ToDictionary(c => c.CommandId.ToLower());
 			//this.CustomAliases = dbContext.CustomAliases.AsQueryable().Where(c => c.ServerId == this.Id).ToDictionary(c => c.Alias.ToLower());
-			IEnumerable<RoleConfig> roles = client.Config.AdminRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Admin});
-			roles = roles?.Concat(client.Config.ModeratorRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Moderator}) ?? new List<RoleConfig>());
-			roles = roles?.Concat(client.Config.SubModeratorRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.SubModerator}) ?? new List<RoleConfig>());
+			IEnumerable<RoleConfig> roles = client.CoreConfig.AdminRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Admin});
+			roles = roles?.Concat(client.CoreConfig.ModeratorRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.Moderator}) ?? new List<RoleConfig>());
+			roles = roles?.Concat(client.CoreConfig.SubModeratorRoleIds?.Where(id => id != 0).Select(id => new RoleConfig{ ServerId = this.Id, RoleId = id, PermissionLevel = RolePermissionLevel.SubModerator}) ?? new List<RoleConfig>());
 			this.Roles = roles?.ToDictionary(r => r.RoleId);
 
 			return Task.CompletedTask;
 		}
 
-		public async Task LoadConfig<T>(ValkyrjaClient<T> client, Dictionary<string, Command> allCommands) where T: Config, new()
+		public async Task LoadConfig<T>(ValkyrjaClient<T> client, Dictionary<string, Command> allCommands) where T: BaseConfig, new()
 		{
 			await ReloadConfig(client, allCommands);
 		}
@@ -215,19 +215,19 @@ namespace Valkyrja.entities
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsAdmin(SocketGuildUser user)
 		{
-			return IsOwner(user) || user.Roles.Any(r => this.Client.Config.AdminRoleIds?.Contains(r.Id) ?? false);
+			return IsOwner(user) || user.Roles.Any(r => this.Client.CoreConfig.AdminRoleIds?.Contains(r.Id) ?? false);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsModerator(SocketGuildUser user)
 		{
-			return IsOwner(user) || user.Roles.Any(r => this.Client.Config.ModeratorRoleIds?.Contains(r.Id) ?? false);
+			return IsOwner(user) || user.Roles.Any(r => this.Client.CoreConfig.ModeratorRoleIds?.Contains(r.Id) ?? false);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsSubModerator(SocketGuildUser user)
 		{
-			return IsOwner(user) || user.Roles.Any(r => this.Client.Config.SubModeratorRoleIds?.Contains(r.Id) ?? false);
+			return IsOwner(user) || user.Roles.Any(r => this.Client.CoreConfig.SubModeratorRoleIds?.Contains(r.Id) ?? false);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -283,7 +283,7 @@ namespace Valkyrja.entities
 				{
 					string msg = $"Received error code `{(int)exception.HttpCode}`\n{helptext}\n\nPlease fix my permissions and channel access on your Discord Server `{this.Guild.Name}`.";
 					SocketTextChannel channel = null;
-					if( this.Client.Config.NotificationChannelId > 0 && (channel = this.Guild.GetTextChannel(this.Client.Config.NotificationChannelId)) != null )
+					if( this.Client.CoreConfig.NotificationChannelId > 0 && (channel = this.Guild.GetTextChannel(this.Client.CoreConfig.NotificationChannelId)) != null )
 					{
 						await channel.SendMessageSafe(msg);
 					}

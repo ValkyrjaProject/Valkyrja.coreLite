@@ -127,8 +127,8 @@ namespace Valkyrja.entities
 				{
 					int index = 0;
 					lock(this.CommandArgs.Client.OperationsLock)
-						return !((index = this.CommandArgs.Client.CurrentOperations.IndexOf(this)) < this.CommandArgs.Client.Config.OperationsMax ||
-						         (index < this.CommandArgs.Client.Config.OperationsMax + this.CommandArgs.Client.Config.OperationsExtra &&
+						return !((index = this.CommandArgs.Client.CurrentOperations.IndexOf(this)) < this.CommandArgs.Client.CoreConfig.OperationsMax ||
+						         (index < this.CommandArgs.Client.CoreConfig.OperationsMax + this.CommandArgs.Client.CoreConfig.OperationsExtra &&
 						          this.CommandArgs.Command.Type == CommandType.Operation)); //Not a large one.
 				}
 

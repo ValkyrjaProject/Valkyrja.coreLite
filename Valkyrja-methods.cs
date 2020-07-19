@@ -13,7 +13,7 @@ using guid = System.UInt64;
 
 namespace Valkyrja.coreLite
 {
-	public partial class ValkyrjaClient<T>: IValkyrjaClient, IDisposable where T: Config, new()
+	public partial class ValkyrjaClient<T>: IValkyrjaClient, IDisposable where T: BaseConfig, new()
 	{
 		public async Task SendRawMessageToChannel(SocketTextChannel channel, string message)
 		{
@@ -24,7 +24,7 @@ namespace Valkyrja.coreLite
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsAdmin(guid id)
 		{
-			return this.Config.OwnerUserId == id;
+			return this.CoreConfig.OwnerUserId == id;
 		}
 
 		public async Task LogException(Exception exception, CommandArguments args) =>

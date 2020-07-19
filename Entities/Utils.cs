@@ -387,9 +387,9 @@ namespace Valkyrja.entities
 
 			//message = Regex.Replace(message, "<@&\\d+>", "@role"); //HACK - temporary solution to ensure that we're not pinging roles til D.NET figures their shit out.
 
-			while( message.Length > Config.MessageCharacterLimit )
+			while( message.Length > BaseConfig.MessageCharacterLimit )
 			{
-				int split = message.Substring(0, Config.MessageCharacterLimit).LastIndexOf('\n');
+				int split = message.Substring(0, BaseConfig.MessageCharacterLimit).LastIndexOf('\n');
 				string chunk = "";
 
 				if( split == -1 )
@@ -403,13 +403,13 @@ namespace Valkyrja.entities
 					message = message.Substring(split + 1);
 				}
 
-				while( chunk.Length > Config.MessageCharacterLimit )
+				while( chunk.Length > BaseConfig.MessageCharacterLimit )
 				{
 					safetyCopy = newChunk;
-					split = chunk.Substring(0, Config.MessageCharacterLimit).LastIndexOf(' ');
+					split = chunk.Substring(0, BaseConfig.MessageCharacterLimit).LastIndexOf(' ');
 					if( split == -1 || (safetyCopy.Length == (newChunk = chunk.Substring(0, split)).Length && safetyCopy == newChunk) )
 					{
-						return await sendMessage("I've encountered an error trying to send a single word longer than " + Config.MessageCharacterLimit.ToString() + " characters.");
+						return await sendMessage("I've encountered an error trying to send a single word longer than " + BaseConfig.MessageCharacterLimit.ToString() + " characters.");
 					}
 
 					await sendMessage(newChunk);

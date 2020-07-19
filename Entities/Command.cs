@@ -250,7 +250,7 @@ namespace Valkyrja.entities
 		{
 			//await this.Client.LogMessage(LogType.Response, this.Channel, this.Client.GlobalConfig.UserId, message);
 
-			if( this.Client.Config.IgnoreEveryone )
+			if( this.Client.CoreConfig.IgnoreEveryone )
 				message = message.Replace("@everyone", "@-everyone").Replace("@here", "@-here");
 
 			try
@@ -310,7 +310,7 @@ namespace Valkyrja.entities
 			EmbedBuilder embedBuilder = new EmbedBuilder()
 				.WithThumbnailUrl("https://valkyrja.app/img/valkyrja-geared-517p.png")
 				.WithColor(196, 255, 255)
-				.WithTitle($"`{server.Client.Config.CommandPrefix}{command.Id} {this.ArgsList}`")
+				.WithTitle($"`{server.Client.CoreConfig.CommandPrefix}{command.Id} {this.ArgsList}`")
 				.WithDescription(command.Description)
 				.AddField("Arguments", string.IsNullOrEmpty(this.ArgumentDescription) ? "None" : this.ArgumentDescription, false);
 
@@ -352,13 +352,13 @@ namespace Valkyrja.entities
 			if( command.Aliases != null && command.Aliases.Any() )
 			{
 				for( ; i < command.Aliases.Count; i++ )
-					aliases += $"{(i == 0 ? "`" : i == totalAliasCount - 1 ? " and `" : ", `")}{server.Client.Config.CommandPrefix}{command.Aliases[i]}`";
+					aliases += $"{(i == 0 ? "`" : i == totalAliasCount - 1 ? " and `" : ", `")}{server.Client.CoreConfig.CommandPrefix}{command.Aliases[i]}`";
 			}
 
 			if( customAliases.Any() )
 			{
 				for( int j = command.Aliases?.Count ?? 0; i < totalAliasCount; i++ )
-					aliases += $"{(i-j == 0 && string.IsNullOrEmpty(aliases) ? "`" : i-j == totalAliasCount - 1 ? " and `" : ", `")}{server.Client.Config.CommandPrefix}{customAliases[i-j].Alias}`";
+					aliases += $"{(i-j == 0 && string.IsNullOrEmpty(aliases) ? "`" : i-j == totalAliasCount - 1 ? " and `" : ", `")}{server.Client.CoreConfig.CommandPrefix}{customAliases[i-j].Alias}`";
 			}
 
 			embedBuilder.AddField("Permissions", permissionString, !string.IsNullOrEmpty(aliases));

@@ -13,7 +13,7 @@ namespace Valkyrja.entities
 		public readonly Counter Commands = Metrics.CreateCounter("discord_valk_cmd", "Valkyrja: Commands executed");
 		public readonly Gauge Uptime = Metrics.CreateGauge("discord_valk_uptime", "Valkyrja: Uptime in seconds");
 
-		private Monitoring(Config config, int shardId)
+		private Monitoring(BaseConfig config, int shardId)
 		{
 			string instance = shardId.ToString();
 			if( !string.IsNullOrEmpty(config.PrometheusInstance) )
@@ -24,7 +24,7 @@ namespace Valkyrja.entities
 			this.Prometheus.Start();
 		}
 
-		public static Monitoring Create(Config config, int shardId)
+		public static Monitoring Create(BaseConfig config, int shardId)
 		{
 			if( string.IsNullOrEmpty(config.PrometheusEndpoint) || string.IsNullOrEmpty(config.PrometheusJob) )
 				return null;

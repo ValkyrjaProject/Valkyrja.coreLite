@@ -7,7 +7,7 @@ using guid = System.UInt64;
 
 namespace Valkyrja.entities
 {
-	public class Config
+	public class BaseConfig
 	{
 		public const int MessageCharacterLimit = 2000;
 		public const int EmbedValueCharacterLimit = 1000;
@@ -42,7 +42,7 @@ namespace Valkyrja.entities
 		public string PrometheusInstance = "";
 		public long PrometheusInterval = 5000;
 
-		public static T Load<T>(string path = null) where T: Config, new()
+		public static T Load<T>(string path = null) where T: BaseConfig, new()
 		{
 			if( !string.IsNullOrEmpty(path) )
 				path = System.IO.Path.Combine(path, Filename);
