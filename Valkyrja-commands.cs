@@ -120,7 +120,7 @@ namespace Valkyrja.coreLite
 			newCommand.Type = CommandType.Standard;
 			newCommand.Description = "Make the bot say something!";
 			newCommand.ManPage = new ManPage("<text>", "`<text>` - Text which the bot will repeat.");
-			newCommand.RequiredPermissions = PermissionType.SubModerator;
+			newCommand.RequiredPermissions = PermissionType.ServerOwner | PermissionType.Admin | PermissionType.Moderator | PermissionType.SubModerator;
 			newCommand.DeleteRequest = true;
 			newCommand.IsBonusCommand = true;
 			newCommand.IsSupportCommand = true;
@@ -140,7 +140,7 @@ namespace Valkyrja.coreLite
 			newCommand.Type = CommandType.Standard;
 			newCommand.Description = "Edit a message the bot previously said!";
 			newCommand.ManPage = new ManPage("<MessageId> <text>", "`<MessageId>` - An ID of a message that will be edited.\n\n`<text>` - Text which the bot will repeat.");
-			newCommand.RequiredPermissions = PermissionType.SubModerator;
+			newCommand.RequiredPermissions = PermissionType.ServerOwner | PermissionType.Admin | PermissionType.Moderator | PermissionType.SubModerator;
 			newCommand.DeleteRequest = true;
 			newCommand.IsBonusCommand = true;
 			newCommand.IsSupportCommand = true;
