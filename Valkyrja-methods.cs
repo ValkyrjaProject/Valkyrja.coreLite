@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
+using Discord;
 using Valkyrja.entities;
 using Discord.Net;
 using Discord.WebSocket;
@@ -158,7 +159,7 @@ namespace Valkyrja.coreLite
 		/// -2 = failed due to Discord server issues;
 		/// -3 = user not found;
 		/// </summary>
-		public async Task<int> SendPmSafe(SocketUser user, string message)
+		public async Task<int> SendPmSafe(SocketUser user, string message, Embed embed = null)
 		{
 			if( user == null )
 				return -3;
@@ -166,7 +167,7 @@ namespace Valkyrja.coreLite
 				return -1;
 			try
 			{
-				await user.SendMessageSafe(message);
+				await user.SendMessageSafe(message, embed);
 				return 1;
 			}
 			catch( HttpException e ) when( (int)e.HttpCode == 403 || (e.DiscordCode.HasValue && e.DiscordCode == 50007) || e.Message.Contains("50007") )

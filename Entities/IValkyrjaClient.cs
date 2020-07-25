@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
 
 using guid = System.UInt64;
@@ -21,6 +22,6 @@ namespace Valkyrja.entities
 		bool IsAdmin(guid id);
 		Task LogException(Exception exception, CommandArguments args);
 		Task LogException(Exception exception, string data, guid serverId = 0);
-		Task<int> SendPmSafe(SocketUser user, string message);
+		Task<int> SendPmSafe(SocketUser user, string message, Embed embed = null);
 	}
 }
