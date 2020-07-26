@@ -7,11 +7,11 @@ namespace Valkyrja.entities
 	{
 		private readonly MetricPusher Prometheus;
 
-		public readonly Counter Disconnects = Metrics.CreateCounter("discord_valk_dc", "Valkyrja: disconnects");
-		public readonly Counter Error500s = Metrics.CreateCounter("discord_valk_500", "Valkyrja: Discord server error 500s");
-		public readonly Counter Messages = Metrics.CreateCounter("discord_valk_msg", "Valkyrja: Messages received");
-		public readonly Counter Commands = Metrics.CreateCounter("discord_valk_cmd", "Valkyrja: Commands executed");
-		public readonly Gauge Uptime = Metrics.CreateGauge("discord_valk_uptime", "Valkyrja: Uptime in seconds");
+		public readonly Counter Disconnects = Metrics.CreateCounter("valkyrja_modmail_dc", "Valkyrja: disconnects");
+		public readonly Counter Error500s = Metrics.CreateCounter("valkyrja_modmail_500", "Valkyrja: Discord server error 500s");
+		public readonly Counter Messages = Metrics.CreateCounter("valkyrja_modmail_msg", "Valkyrja: Messages received");
+		public readonly Counter Commands = Metrics.CreateCounter("valkyrja_modmail_cmd", "Valkyrja: Commands executed");
+		public readonly Gauge Uptime = Metrics.CreateGauge("valkyrja_modmail_uptime", "Valkyrja: Uptime in seconds");
 
 		private Monitoring(BaseConfig config, int shardId)
 		{
