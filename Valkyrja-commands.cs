@@ -184,11 +184,11 @@ namespace Valkyrja.coreLite
 					string[] temp = Bash.Run("sensors | egrep '(Tdie|Tctl)' | awk '{print $2}'").Split('\n');
 
 					message += "Service Status: <https://status.valkyrja.app>\n" +
-					                 $"```md\n" +
-					                 $"[   Memory usage ][ {memoryPercentage:#00.00} % ({memoryPercentage / 100 * 128:000.00}/128 GB) ]\n" +
-					                 $"[       CPU Load ][ {double.Parse(cpuLoad):#00.00} % ({temp[1]})       ]\n" +
-					                 $"[       Shard ID ][ {this.CurrentShardId:00}                      ]\n" +
-					                 $"[ Discord Latency ][ {time.TotalMilliseconds:#00}                     \n```";
+					           $"```md\n" +
+					           $"[    Memory usage ][ {memoryPercentage:#00.00} % ({memoryPercentage / 100 * 128:000.00}/128 GB) ]\n" +
+					           $"[        CPU Load ][ {double.Parse(cpuLoad):#00.00} % ({temp[1]})       ]\n" +
+					           $"[        Shard ID ][ {this.CurrentShardId:00}                      ]\n" +
+					           $"[ Discord Latency ][ {time.TotalMilliseconds:#00}                     ]\n```";
 				}
 
 				await e.SendReplySafe(message);
