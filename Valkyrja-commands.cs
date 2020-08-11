@@ -208,6 +208,7 @@ namespace Valkyrja.coreLite
 				if( string.IsNullOrEmpty(commandId) || (!e.Server.Commands.ContainsKey(commandId) && (!e.Server.CustomAliases.ContainsKey(commandId) || !e.Server.Commands.ContainsKey(commandId = e.Server.CustomAliases[commandId].CommandId))) )
 				{
 					await e.SendReplySafe(response);
+					return;
 				}
 
 				Command cmd = e.Server.Commands[commandId];
