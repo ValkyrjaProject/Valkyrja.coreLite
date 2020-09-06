@@ -18,6 +18,7 @@ namespace Valkyrja.entities
 
 		public bool Debug = false;
 		public bool IsValkyrjaHosted = false;
+		public string StatusPage = "https://status.valkyrja.app";
 		public string DiscordToken = null;
 		public string GameStatus = "at https://valkyrja.app";
 		public string CommandPrefix = "!";

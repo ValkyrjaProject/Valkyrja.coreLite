@@ -183,7 +183,7 @@ namespace Valkyrja.coreLite
 					double memoryPercentage = double.Parse(memoryUsed);
 					string[] temp = Bash.Run("sensors | egrep '(Tdie|Tctl)' | awk '{print $2}'").Split('\n');
 
-					message += "Service Status: <https://status.valkyrja.app>\n" +
+					message += $"Service Status: <{this.CoreConfig.StatusPage}>\n" +
 					           $"```md\n" +
 					           $"[    Memory usage ][ {memoryPercentage:#00.00} % ({memoryPercentage / 100 * 128:000.00}/128 GB) ]\n" +
 					           $"[        CPU Load ][ {double.Parse(cpuLoad):#00.00} % ({temp[1]})       ]\n" +
