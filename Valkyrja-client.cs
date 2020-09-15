@@ -230,7 +230,7 @@ namespace Valkyrja.coreLite
 			}
 		}
 
-		private async Task OnMessageUpdated(SocketMessage originalMessage, SocketMessage updatedMessage, ISocketMessageChannel iChannel)
+		private async Task OnMessageUpdated(IMessage originalMessage, SocketMessage updatedMessage, ISocketMessageChannel iChannel)
 		{
 			if( !this.IsConnected || originalMessage.Content == updatedMessage.Content )
 				return;
