@@ -246,21 +246,34 @@ namespace Valkyrja.entities
 			this.MessageArgs = messageArgs;
 		}
 
-		public async Task SendReplySafe(string message, AllowedMentions allowedMentions = null)
+		public async Task SendReplySafe(string text = null, Embed embed = null, AllowedMentions allowedMentions = null)
 		{
 			//await this.Client.LogMessage(LogType.Response, this.Channel, this.Client.GlobalConfig.UserId, message);
+			if( text == null && embed == null )
+				return;
 
 			if( this.Client.CoreConfig.IgnoreEveryone )
-				message = message.Replace("@everyone", "@-everyone").Replace("@here", "@-here");
+				text = text?.Replace("@everyone", "@-everyone").Replace("@here", "@-here");
 
 			try
 			{
 				if( this.Server.CommandReplyMsgIds.ContainsKey(this.Message.Id) )
 				{
-					if( await this.Channel.GetMessageAsync(this.Server.CommandReplyMsgIds[this.Message.Id]) is SocketUserMessage msg )
+					IMessage msg = await this.Channel.GetMessageAsync(this.Server.CommandReplyMsgIds[this.Message.Id]);
+					switch( msg )
 					{
-						await msg.ModifyAsync(m => m.Content = message);
-						return;
+						case RestUserMessage message:
+							await message.ModifyAsync(m => {
+								m.Content = text;
+								m.Embed = embed;
+							});
+							break;
+						case SocketUserMessage message:
+							await message.ModifyAsync(m => {
+								m.Content = text;
+								m.Embed = embed;
+							});
+							break;
 					}
 				}
 			}
@@ -269,7 +282,7 @@ namespace Valkyrja.entities
 				await Server.HandleHttpException(e, $"Unable to get message history in <#{this.Channel.Id}>");
 			}
 
-			IUserMessage reply = await this.Channel.SendMessageSafe(message, allowedMentions: allowedMentions);
+			IUserMessage reply = await this.Channel.SendMessageSafe(text, embed, allowedMentions: allowedMentions);
 			this.Server.CommandReplyMsgIds.TryAdd(this.Message.Id, reply.Id);
 
 			if( this.CommandOptions != null && this.CommandOptions.DeleteReply )
