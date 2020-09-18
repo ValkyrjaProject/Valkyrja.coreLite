@@ -210,15 +210,15 @@ namespace Valkyrja.coreLite
 				}
 
 				Server server;
-				if( !this.Servers.ContainsKey(channel.Guild.Id) || (server = this.Servers[channel.Guild.Id]) == null )
+				if( message?.Author == null || !this.Servers.ContainsKey(channel.Guild.Id) || (server = this.Servers[channel.Guild.Id]) == null )
 					return;
 				if( this.CoreConfig.IgnoreBots && message.Author.IsBot || this.CoreConfig.IgnoreEveryone && this.RegexEveryone.IsMatch(message.Content) )
 					return;
 
 				bool commandExecuted = false;
-				string prefix;
+				string prefix = this.CoreConfig.CommandPrefix;
 				if( message.Author.Id != this.DiscordClient.CurrentUser.Id &&
-				    !string.IsNullOrWhiteSpace(this.CoreConfig.CommandPrefix) && message.Content.StartsWith(prefix = this.CoreConfig.CommandPrefix) )
+				    !string.IsNullOrWhiteSpace(this.CoreConfig.CommandPrefix) && message.Content.StartsWith(prefix) )
 					commandExecuted = await HandleCommand(server, channel, message, prefix);
 
 				if( !commandExecuted && message.MentionedUsers.Any(u => u.Id == this.DiscordClient.CurrentUser.Id) )
@@ -230,26 +230,32 @@ namespace Valkyrja.coreLite
 			}
 		}
 
-		private async Task OnMessageUpdated(IMessage originalMessage, SocketMessage updatedMessage, ISocketMessageChannel iChannel)
+		private async Task OnMessageUpdated(IMessage originalMessage, SocketMessage updatedMessage, ISocketMessageChannel _)
 		{
 			if( !this.IsConnected || originalMessage.Content == updatedMessage.Content )
 				return;
 
+			if( !(updatedMessage.Channel is SocketTextChannel channel) )
+			{
+				//It's an edited PM.
+				return;
+			}
+
+
 			try
 			{
 				Server server;
-				if( !(iChannel is SocketTextChannel channel) || updatedMessage?.Author == null || !this.Servers.ContainsKey(channel.Guild.Id) || (server = this.Servers[channel.Guild.Id]) == null || this.CoreConfig == null )
+				if( updatedMessage?.Author == null || !this.Servers.ContainsKey(channel.Guild.Id) || (server = this.Servers[channel.Guild.Id]) == null )
 					return;
 				if( this.CoreConfig.IgnoreBots && updatedMessage.Author.IsBot || this.CoreConfig.IgnoreEveryone && this.RegexEveryone.IsMatch(updatedMessage.Content) )
 					return;
 
-				bool commandExecuted = false;
 				if( this.CoreConfig.ExecuteOnEdit )
 				{
-					string prefix;
+					string prefix = this.CoreConfig.CommandPrefix;
 					if( updatedMessage.Author.Id != this.DiscordClient.CurrentUser.Id &&
-					    !string.IsNullOrWhiteSpace(this.CoreConfig.CommandPrefix) && updatedMessage.Content.StartsWith(prefix = this.CoreConfig.CommandPrefix) )
-						commandExecuted = await HandleCommand(server, channel, updatedMessage, prefix);
+					    !string.IsNullOrWhiteSpace(this.CoreConfig.CommandPrefix) && updatedMessage.Content.StartsWith(prefix) )
+						await HandleCommand(server, channel, updatedMessage, prefix);
 				}
 			}
 			catch( Exception exception )
