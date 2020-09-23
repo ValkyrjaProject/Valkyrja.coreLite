@@ -15,9 +15,13 @@ namespace Valkyrja.entities
 
 		private Monitoring(BaseConfig config, int shardId)
 		{
-			string instance = shardId.ToString();
+			string instance = "";
 			if( !string.IsNullOrEmpty(config.PrometheusInstance) )
-				instance = config.PrometheusInstance + "_" + shardId.ToString();
+				instance = config.PrometheusInstance;
+			else
+				instance = "1";
+			if( config.TotalShards > 1 )
+				instance += "_" + shardId.ToString();
 
 			if( this.Prometheus == null )
 				this.Prometheus = new MetricPusher(config.PrometheusEndpoint, config.PrometheusJob, instance, config.PrometheusInterval);
