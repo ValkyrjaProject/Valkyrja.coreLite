@@ -52,6 +52,9 @@ namespace Valkyrja.entities
 		public bool IsBonusCommand{ get; set; }
 
 		/// <summary> Subscriber bonus only </summary>
+		public bool IsBonusAdminCommand{ get; set; }
+
+		/// <summary> Subscriber bonus only </summary>
 		public bool IsPremiumCommand{ get; set; }
 
 		/// <summary> Subscriber bonus only </summary>
@@ -115,6 +118,7 @@ namespace Valkyrja.entities
 			newCommand.IsCustomCommand = this.IsCustomCommand;
 			newCommand.Type = this.Type;
 			newCommand.IsBonusCommand = this.IsBonusCommand;
+			newCommand.IsBonusAdminCommand = this.IsBonusAdminCommand;
 			newCommand.IsPremiumCommand = this.IsPremiumCommand;
 			newCommand.IsPremiumServerwideCommand = this.IsPremiumServerwideCommand;
 			newCommand.RequiredPermissions = this.RequiredPermissions;
@@ -164,7 +168,7 @@ namespace Valkyrja.entities
 
 				if( !string.IsNullOrWhiteSpace(e.TrimmedMessage) && e.TrimmedMessage == "help" )
 				{
-					await e.SendReplySafe(e.Command.Description);
+					await e.SendReplySafe(e.Command.ManPage.ToString(e.Client.CoreConfig.CommandPrefix + e.CommandId));
 					return true;
 				}
 
@@ -246,7 +250,7 @@ namespace Valkyrja.entities
 			this.MessageArgs = messageArgs;
 		}
 
-		public async Task SendReplySafe(string text = null, Embed embed = null, AllowedMentions allowedMentions = null)
+		public async Task SendReplySafe(string text = null, Embed embed = null, AllowedMentions allowedMentions = null, bool messageReference = true)
 		{
 			//await this.Client.LogMessage(LogType.Response, this.Channel, this.Client.GlobalConfig.UserId, message);
 			if( text == null && embed == null )
@@ -257,7 +261,7 @@ namespace Valkyrja.entities
 
 			try
 			{
-				if( this.Server.CommandReplyMsgIds.ContainsKey(this.Message.Id) )
+				if( this.Server.CommandReplyMsgIds.ContainsKey(this.Message.Id) && (text == null || text.Length < BaseConfig.MessageCharacterLimit) )
 				{
 					IMessage msg = await this.Channel.GetMessageAsync(this.Server.CommandReplyMsgIds[this.Message.Id]);
 					switch( msg )
@@ -267,13 +271,13 @@ namespace Valkyrja.entities
 								m.Content = text;
 								m.Embed = embed;
 							});
-							break;
+							return;
 						case SocketUserMessage message:
 							await message.ModifyAsync(m => {
 								m.Content = text;
 								m.Embed = embed;
 							});
-							break;
+							return;
 					}
 				}
 			}
@@ -282,7 +286,7 @@ namespace Valkyrja.entities
 				await Server.HandleHttpException(e, $"Unable to get message history in <#{this.Channel.Id}>");
 			}
 
-			IUserMessage reply = await this.Channel.SendMessageSafe(text, embed, allowedMentions: allowedMentions);
+			IUserMessage reply = await this.Channel.SendMessageSafe(text, embed, allowedMentions: allowedMentions, !this.Command.DeleteRequest && messageReference ? new MessageReference(this.Message.Id, this.Channel.Id, this.Server.Guild.Id) : null);
 			this.Server.CommandReplyMsgIds.TryAdd(this.Message.Id, reply.Id);
 
 			if( this.CommandOptions != null && this.CommandOptions.DeleteReply )
@@ -378,6 +382,20 @@ namespace Valkyrja.entities
 			if( !string.IsNullOrEmpty(aliases) )
 				embedBuilder.AddField("Aliases", aliases, true);
 
+			if( command.IsPremiumCommand || command.IsPremiumCommand || command.IsBonusCommand || command.IsBonusAdminCommand )
+			{
+				string flags = "";
+				if( command.IsBonusCommand )
+					flags += "Bonus command.\n";
+				if( command.IsBonusAdminCommand )
+					flags += "Bonus command for admins.\n";
+				if( command.IsPremiumCommand )
+					flags += "Premium command.\n";
+				if( command.IsPremiumServerwideCommand )
+					flags += "Premium server-wide command.";
+
+				embedBuilder.AddField("Special Flags", flags, true);
+			}
 
 			IEnumerable<CommandChannelOptions> commandChannelOptions = server.GetCommandChannelOptions(command.Id);
 			List<CommandChannelOptions> blockedChannels = commandChannelOptions.Where(c => c.ServerId == server.Id && c.CommandId == command.Id && c.Blocked).ToList();

@@ -46,6 +46,7 @@ namespace Valkyrja.coreLite
 			newCommand.Type = CommandType.Standard;
 			newCommand.IsCoreCommand = true;
 			newCommand.Description = "Shut down the bot.";
+			newCommand.ManPage = new ManPage("", "");
 			newCommand.RequiredPermissions = PermissionType.OwnerOnly;
 			newCommand.OnExecute += async e => {
 				await e.SendReplySafe("bai");
@@ -123,6 +124,7 @@ namespace Valkyrja.coreLite
 			newCommand.RequiredPermissions = PermissionType.ServerOwner | PermissionType.Admin | PermissionType.Moderator | PermissionType.SubModerator;
 			newCommand.DeleteRequest = true;
 			newCommand.IsBonusCommand = true;
+			newCommand.IsBonusAdminCommand = true;
 			newCommand.IsSupportCommand = true;
 			newCommand.OnExecute += async e => {
 				if( string.IsNullOrWhiteSpace(e.TrimmedMessage) )
@@ -143,6 +145,7 @@ namespace Valkyrja.coreLite
 			newCommand.RequiredPermissions = PermissionType.ServerOwner | PermissionType.Admin | PermissionType.Moderator | PermissionType.SubModerator;
 			newCommand.DeleteRequest = true;
 			newCommand.IsBonusCommand = true;
+			newCommand.IsBonusAdminCommand = true;
 			newCommand.IsSupportCommand = true;
 			newCommand.OnExecute += async e => {
 				IMessage msg = null;
@@ -538,7 +541,7 @@ namespace Valkyrja.coreLite
 				StringBuilder responseBuilder = new StringBuilder();
 				foreach( Command cmd in this.Commands.Values.OrderBy(c => c.RequiredPermissions) )
 				{
-					if( cmd.IsAlias || cmd.IsCoreCommand || cmd.RequiredPermissions == PermissionType.OwnerOnly )
+					if( cmd.IsAlias || cmd.IsHidden || cmd.IsCoreCommand || cmd.RequiredPermissions == PermissionType.OwnerOnly )
 						continue;
 
 					CommandOptions options = dbContext.GetOrAddCommandOptions(e.Server, cmd.Id);
