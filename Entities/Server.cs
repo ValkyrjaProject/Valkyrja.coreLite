@@ -278,7 +278,7 @@ namespace Valkyrja.entities
 				logMsg = "DiscordPoop";
 			else if( (int)exception.HttpCode == 404 )
 				logMsg = "";
-			else if( exception.Message.Contains("50007") )
+			else if( (exception.DiscordCode.HasValue && exception.DiscordCode == DiscordErrorCode.CannotSendMessageToUser) || exception.Message.Contains("50007") )
 				logMsg = "Failed to PM";
 			else if( this.HttpExceptionCount < 5 )
 			{

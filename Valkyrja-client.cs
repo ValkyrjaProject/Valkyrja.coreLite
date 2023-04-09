@@ -89,7 +89,7 @@ namespace Valkyrja.coreLite
 			DiscordSocketConfig config = new DiscordSocketConfig{
 				ShardId = this.CurrentShardId,
 				TotalShards = this.CoreConfig.TotalShards,
-				GatewayIntents = GatewayIntents.Guilds | GatewayIntents.DirectMessages | GatewayIntents.GuildMessages | GatewayIntents.DirectMessageReactions | GatewayIntents.GuildMessageReactions,
+				GatewayIntents = GatewayIntents.Guilds | GatewayIntents.DirectMessages | GatewayIntents.MessageContent | GatewayIntents.GuildMessages | GatewayIntents.DirectMessageReactions | GatewayIntents.GuildMessageReactions,
 				LogLevel = this.CoreConfig.Debug ? LogSeverity.Debug : LogSeverity.Warning,
 				DefaultRetryMode = RetryMode.Retry502 & RetryMode.RetryRatelimit & RetryMode.RetryTimeouts,
 				AlwaysDownloadUsers = this.CoreConfig.DownloadUsers,

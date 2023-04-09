@@ -201,23 +201,7 @@ namespace Valkyrja.coreLite
 			newCommand.RequiredPermissions = PermissionType.Everyone;
 			newCommand.OnExecute += async e => {
 				TimeSpan time = DateTime.UtcNow - Utils.GetTimeFromId(e.Message.Id);
-				string message = "";
-				if( this.CoreConfig.IsValkyrjaHosted )
-				{
-					string cpuLoad = Bash.Run("grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'");
-					string memoryUsed = Bash.Run("free | grep Mem | awk '{print $3/$2 * 100.0}'");
-					double memoryPercentage = double.Parse(memoryUsed);
-					string[] temp = Bash.Run("sensors | egrep '(Tdie|Tctl)' | awk '{print $2}'").Split('\n');
-
-					message += $"Service Status: <{this.CoreConfig.StatusPage}>\n" +
-					           $"```md\n" +
-					           $"[    Memory usage ][ {memoryPercentage:#00.00} % ({memoryPercentage / 100 * 128:000.00}/128 GB) ]\n" +
-					           $"[        CPU Load ][ {double.Parse(cpuLoad):#00.00} % ({temp[1]})       ]\n" +
-					           $"[        Shard ID ][ {this.CurrentShardId:00}                      ]\n" +
-					           $"[ Discord Latency ][ {time.TotalMilliseconds:#00}                     ]\n```";
-				}
-
-				await e.SendReplySafe(message);
+				await e.SendReplySafe(GetStatusString(time, e.Server));
 			};
 			this.Commands.Add(newCommand.Id.ToLower(), newCommand);
 			this.Commands.Add("ping", newCommand.CreateAlias("ping"));

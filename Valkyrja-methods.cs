@@ -48,7 +48,7 @@ namespace Valkyrja.coreLite
 			    exception.Message.Contains("Discord.PermissionTarget") ) //it's a spam
 				return;
 
-			Console.WriteLine(exception.Message);
+			Console.WriteLine($"{exception.GetType()}: {exception.Message}");
 			Console.WriteLine(exception.StackTrace);
 			Console.WriteLine($"{data} | ServerId:{serverId}");
 
@@ -161,7 +161,7 @@ namespace Valkyrja.coreLite
 				await user.SendMessageSafe(message, embed);
 				return 1;
 			}
-			catch( HttpException e ) when( (int)e.HttpCode == 403 || (e.DiscordCode.HasValue && e.DiscordCode == 50007) || e.Message.Contains("50007") )
+			catch( HttpException e ) when( (int)e.HttpCode == 403 || (e.DiscordCode.HasValue && e.DiscordCode == DiscordErrorCode.CannotSendMessageToUser) || e.Message.Contains("50007") )
 			{
 				if( !this.FailedPmCount.ContainsKey(user.Id) )
 					this.FailedPmCount.Add(user.Id, 0);
@@ -178,6 +178,28 @@ namespace Valkyrja.coreLite
 				await LogException(e, "Unknown PM error.", 0);
 				return -2;
 			}
+		}
+
+
+		private string GetStatusString(TimeSpan latency, Server server)
+		{
+			string message = "";
+			if( this.CoreConfig.IsValkyrjaHosted )
+			{
+				string cpuLoad = Bash.Run("grep 'cpu ' /proc/stat | awk '{print ($2+$4)*100/($2+$4+$5)}'");
+				string memoryUsed = Bash.Run("free | grep Mem | awk '{print $3/$2 * 100.0}'");
+				double memoryPercentage = double.Parse(memoryUsed);
+				string[] temp = Bash.Run("sensors | egrep '(Tdie|Tctl)' | awk '{print $2}'").Split('\n');
+
+				message += $"Service Status: <{this.CoreConfig.StatusPage}>\n" +
+				           $"```md\n" +
+				           $"[    Memory usage ][ {memoryPercentage:#00.00} % ({memoryPercentage / 100 * 128:000.00}/128 GB) ]\n" +
+				           $"[        CPU Load ][ {double.Parse(cpuLoad):#00.00} % ({temp[1]})       ]\n" +
+				           $"[        Shard ID ][ {this.CurrentShardId:00}                      ]\n" +
+				           $"[ Discord Latency ][ {latency.TotalMilliseconds:#00}                     ]\n```";
+			}
+
+			return message;
 		}
 	}
 }
