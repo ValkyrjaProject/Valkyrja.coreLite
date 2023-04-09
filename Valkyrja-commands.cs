@@ -37,6 +37,29 @@ namespace Valkyrja.coreLite
 				await SendRawMessageToChannel(channel, responseString);
 		}
 
+		private async Task InitSlashCommands()
+		{
+			try
+			{
+				SlashCommandBuilder pingCommand = new SlashCommandBuilder().WithName("ping").WithDescription("Verify basic functionality.")
+					.WithNameLocalizations(new Dictionary<string, string>()).WithDescriptionLocalizations(new Dictionary<string, string>()); //D.NET bug #2453
+				await this.DiscordClient.CreateGlobalApplicationCommandAsync(pingCommand.Build());
+			}
+			catch( Exception e )
+			{
+				await LogException(e, "InitSlashCommands");
+			}
+		}
+
+		private async Task ExecuteSlashCommand(SocketSlashCommand command)
+		{
+			if( command.CommandName == "ping" && command.GuildId.HasValue && this.Servers.ContainsKey(command.GuildId.Value) )
+			{
+				TimeSpan time = DateTime.UtcNow - Utils.GetTimeFromId(command.Id);
+				await command.RespondAsync(GetStatusString(time, this.Servers[command.GuildId.Value]), ephemeral: true);
+			}
+		}
+
 		private Task InitCommands()
 		{
 			Command newCommand = null;

@@ -113,12 +113,14 @@ namespace Valkyrja.coreLite
 			this.DiscordClient.Connected += OnConnected;
 			this.DiscordClient.Ready += OnReady;
 			this.DiscordClient.Disconnected += OnDisconnected;
+			this.DiscordClient.SlashCommandExecuted += ExecuteSlashCommand; //TODO move to Events should there be actual use of it.
 			this.Events = new Events(this.DiscordClient, this);
 			this.Events.MessageReceived += OnMessageReceived;
 			this.Events.MessageUpdated += OnMessageUpdated;
 			this.Events.Connected += async () => await this.DiscordClient.SetGameAsync(this.CoreConfig.GameStatus);
 			this.Events.Initialize += InitCommands;
 			this.Events.Initialize += InitModules;
+			this.Events.Initialize += InitSlashCommands;
 			this.Events.GuildAvailable += OnGuildAvailable;
 			this.Events.JoinedGuild += OnGuildJoined;
 			this.Events.LeftGuild += OnGuildLeft;
